@@ -71,8 +71,7 @@ export default {
       keyString: null,
       context: null,
       canvas: null,
-      selectedAnnotations: [],
-      indexToAnnotationMap: {}
+      selectedAnnotations: []
     };
   },
   computed: {
@@ -89,8 +88,7 @@ export default {
           const { x, y, x2, y2 } = this.transformAnnotationRectangleToFlatbushRectangle(
             annotationRectangleForPixelDepth
           );
-          const indexNumber = builtAnnotationsIndex.add(x, y, x2, y2);
-          this.indexToAnnotationMap[indexNumber] = annotation;
+          builtAnnotationsIndex.add(x, y, x2, y2);
         });
         builtAnnotationsIndex.finish();
 
@@ -375,7 +373,7 @@ export default {
         let nearbyAnnotations = [];
         const resultIndicies = this.annotationsIndex.search(x, y, x, y);
         resultIndicies.forEach((resultIndex) => {
-          const foundAnnotation = this.indexToAnnotationMap[resultIndex];
+          const foundAnnotation = this.imageryAnnotations[resultIndex];
           nearbyAnnotations.push(foundAnnotation);
         });
         //if everything has been deleted, don't bother with the selection

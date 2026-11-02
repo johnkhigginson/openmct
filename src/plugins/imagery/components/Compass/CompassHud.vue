@@ -117,9 +117,8 @@ export default {
       return COMPASS_POINTS.filter((point) => inRange(point.degrees, this.visibleRange)).map(
         (point) => {
           const percentage = percentOfRange(point.degrees, this.visibleRange);
-          point.style = Object.assign({ left: `${percentage * 100}%` });
 
-          return point;
+          return { ...point, style: { left: `${percentage * 100}%` } };
         }
       );
     },

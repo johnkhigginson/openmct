@@ -58,7 +58,9 @@ export default function TimelineElementsViewProvider(openmct) {
           _destroy = destroy;
         },
         showTab: function (isEditing) {
-          const hasComposition = Boolean(domainObject && openmct.composition.get(domainObject));
+          const hasComposition = Boolean(
+            domainObject && openmct.composition.supportsComposition(domainObject)
+          );
 
           return hasComposition;
         },

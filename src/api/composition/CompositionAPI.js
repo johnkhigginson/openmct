@@ -75,9 +75,7 @@ export default class CompositionAPI {
    * @returns {CompositionCollection | undefined}
    */
   get(domainObject) {
-    const provider = this.registry.find((p) => {
-      return p.appliesTo(domainObject);
-    });
+    const provider = this.#findProvider(domainObject);
 
     if (!provider) {
       return;
@@ -138,6 +136,12 @@ export default class CompositionAPI {
    * @returns {boolean} true if the domainObject supports composition
    */
   supportsComposition(domainObject) {
-    return this.get(domainObject) !== undefined;
+    return this.#findProvider(domainObject) !== undefined;
+  }
+
+  #findProvider(domainObject) {
+    return this.registry.find((p) => {
+      return p.appliesTo(domainObject);
+    });
   }
 }

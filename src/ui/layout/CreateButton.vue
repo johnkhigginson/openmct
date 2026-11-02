@@ -38,7 +38,6 @@ export default {
   inject: ['openmct'],
   data: function () {
     return {
-      menuItems: {},
       isEditing: this.openmct.editor.isEditing(),
       selectedMenuItem: {},
       opened: false
@@ -67,24 +66,20 @@ export default {
   },
   methods: {
     getItems() {
-      let keys = this.openmct.types.listKeys();
-
-      keys.forEach((key) => {
-        if (!this.menuItems[key]) {
-          let typeDef = this.openmct.types.get(key).definition;
-
-          if (typeDef.creatable) {
-            this.menuItems[key] = {
-              cssClass: typeDef.cssClass,
-              name: typeDef.name,
-              description: typeDef.description,
-              onItemClicked: () => this.create(key)
-            };
-          }
-        }
+      const creatableTypeKeys = this.openmct.types.listKeys().filter((key) => {
+        return this.openmct.types.get(key).definition.creatable;
       });
 
-      return Object.values(this.menuItems);
+      return creatableTypeKeys.map((key) => {
+        const typeDef = this.openmct.types.get(key).definition;
+
+        return {
+          cssClass: typeDef.cssClass,
+          name: typeDef.name,
+          description: typeDef.description,
+          onItemClicked: () => this.create(key)
+        };
+      });
     },
     showCreateMenu() {
       const elementBoundingClientRect = this.$refs.createButton.getBoundingClientRect();

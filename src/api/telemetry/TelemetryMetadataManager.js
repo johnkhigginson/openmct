@@ -22,7 +22,10 @@
 
 import _ from 'lodash';
 
-function applyReasonableDefaults(valueMetadata, index) {
+function applyReasonableDefaults(sourceValueMetadata, index) {
+  // Copy so reactive domain object telemetry metadata is not mutated while a computed reads it
+  const valueMetadata = { ...sourceValueMetadata, hints: { ...sourceValueMetadata.hints } };
+
   valueMetadata.source = valueMetadata.source || valueMetadata.key;
   valueMetadata.hints = valueMetadata.hints || {};
 
