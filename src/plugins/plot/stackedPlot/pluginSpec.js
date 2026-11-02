@@ -400,7 +400,11 @@ describe('the plugin', function () {
       );
       expect(yAxisElement.length).toBe(1);
       let ticks = yAxisElement[0].querySelectorAll('.gl-plot-tick');
-      expect(ticks.length).toBe(6);
+      // Ticks are reduced to fit the height of each stacked plot, but the bounds always remain
+      expect(ticks.length).toBeGreaterThanOrEqual(2);
+      expect(ticks.length).toBeLessThanOrEqual(6);
+      expect(ticks[0].textContent.trim()).toBe('10');
+      expect(ticks[ticks.length - 1].textContent.trim()).toBe('20');
     });
 
     it('Renders Y-axis options for the telemetry object', () => {

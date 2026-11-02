@@ -84,11 +84,15 @@ import { symlog } from './mathUtils.js';
 import {
   getFormattedTicks,
   getLogTicks,
+  getTicksFittingLength,
   getTimeTicks,
   measureTextWidth,
   ticks,
   toTick
 } from './tickUtils.js';
+
+// Minimum height in pixels given to each Y axis tick label.
+const MIN_Y_TICK_SPACING = 20;
 
 export default {
   inject: ['openmct', 'domainObject', 'objectPath'],
@@ -269,13 +273,39 @@ export default {
         tickCount = this.getDynamicTickCount(range);
       }
 
-      if (logMode) {
-        return getLogTicks(range.min, range.max, number);
-      } else if (this.isUtc) {
-        return getTimeTicks(range.min, range.max, tickCount).map(toTick);
-      } else {
-        return ticks(range.min, range.max, tickCount).map(toTick);
+      if (this.axisType === 'yAxis') {
+        return this.getYAxisTicksFittingHeight(range, logMode);
       }
+
+      return this.generateTicks(range, logMode, tickCount);
+    },
+
+    generateTicks(range, logMode, count) {
+      if (logMode) {
+        return getLogTicks(range.min, range.max, count);
+      } else if (this.isUtc) {
+        return getTimeTicks(range.min, range.max, count).map(toTick);
+      } else {
+        return ticks(range.min, range.max, count).map(toTick);
+      }
+    },
+
+    getYAxisTicksFittingHeight(range, logMode) {
+      const generateTicks = (count) => this.generateTicks(range, logMode, count);
+      const height = this.$refs.tickContainer.parentElement.offsetHeight;
+
+      // Nothing is laid out yet (or the axis is hidden), so there is nothing to fit.
+      if (height === 0) {
+        return generateTicks(this.tickCount);
+      }
+
+      return getTicksFittingLength(
+        generateTicks,
+        this.tickCount,
+        range,
+        height,
+        MIN_Y_TICK_SPACING
+      );
     },
 
     updateTicksForceRegeneration() {

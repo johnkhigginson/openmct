@@ -458,6 +458,75 @@ export function ticks(start, stop, count) {
   });
 }
 
+/**
+ * Fewest labelled ticks requested from the generator. Below this, only the
+ * upper and lower ticks and, if one fits, a middle tick are shown.
+ */
+const MIN_GENERATED_TICK_COUNT = 4;
+
+function getMajorTicks(candidateTicks) {
+  return candidateTicks.filter((tick) => !tick.minor);
+}
+
+/**
+ * Keep the upper and lower ticks, plus the tick nearest the middle of the range
+ * that clears both of them by minSpacing pixels. Human readable values are not
+ * exactly centered, so a middle tick that would overrun an end is hidden.
+ */
+function getBoundsAndMiddleTicks(candidateTicks, range, pixelsPerUnit, minSpacing) {
+  const majorTicks = getMajorTicks(candidateTicks);
+  if (majorTicks.length < 2) {
+    return majorTicks;
+  }
+
+  const lowerTick = majorTicks[0];
+  const upperTick = majorTicks[majorTicks.length - 1];
+  const rangeCenter = (range.min + range.max) / 2;
+  const [middleTick] = majorTicks
+    .slice(1, -1)
+    .filter(
+      (tick) =>
+        (tick.value - lowerTick.value) * pixelsPerUnit >= minSpacing &&
+        (upperTick.value - tick.value) * pixelsPerUnit >= minSpacing
+    )
+    .sort((a, b) => Math.abs(a.value - rangeCenter) - Math.abs(b.value - rangeCenter));
+
+  return middleTick === undefined ? [lowerTick, upperTick] : [lowerTick, middleTick, upperTick];
+}
+
+/**
+ * Progressively reduce the labelled ticks until they do not overrun each other
+ * along an axis. Ticks are regenerated with a smaller desired count first, so
+ * values stay human readable. If that is not enough, the upper and lower ticks
+ * are kept, with a middle tick if it fits. Two ticks are always kept.
+ *
+ * @param {(count: number) => {value: number, minor: boolean}[]} generateTicks
+ *        produces ascending ticks for a desired labelled tick count
+ * @param {number} desiredCount labelled tick count to use when there is room
+ * @param {{min: number, max: number}} range displayed range of the axis
+ * @param {number} length length of the axis in pixels
+ * @param {number} minSpacing minimum distance between labelled ticks in pixels
+ * @returns {{value: number, minor: boolean}[]} ticks to display
+ */
+export function getTicksFittingLength(generateTicks, desiredCount, range, length, minSpacing) {
+  const pixelsPerUnit = length / (range.max - range.min);
+
+  for (let count = desiredCount; count >= MIN_GENERATED_TICK_COUNT; count--) {
+    const candidateTicks = generateTicks(count);
+    const majorTicks = getMajorTicks(candidateTicks);
+    const fits = majorTicks.every(
+      (tick, index) =>
+        index === 0 || (tick.value - majorTicks[index - 1].value) * pixelsPerUnit >= minSpacing
+    );
+
+    if (fits) {
+      return candidateTicks;
+    }
+  }
+
+  return getBoundsAndMiddleTicks(generateTicks(desiredCount), range, pixelsPerUnit, minSpacing);
+}
+
 export function commonPrefix(a, b) {
   const maxLen = Math.min(a.length, b?.length);
   let breakpoint = 0;
