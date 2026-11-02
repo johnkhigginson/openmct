@@ -76,6 +76,7 @@ class RemoveAction {
         buttons: [
           {
             label: 'Ok',
+            emphasis: true,
             callback: () => {
               dialog.dismiss();
               resolve();

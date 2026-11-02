@@ -42,8 +42,7 @@
             :key="index"
             class="c-button js-overlay__button"
             tabindex="0"
-            :class="{ 'c-button--major': focusIndex === index }"
-            @focus="focusIndex = index"
+            :class="{ 'c-button--major': button.emphasis }"
             @click="buttonClickHandler(button.callback)"
           >
             {{ button.label }}
@@ -58,11 +57,6 @@
 export default {
   inject: ['dismiss', 'element', 'buttons', 'dismissible'],
   emits: ['destroy'],
-  data() {
-    return {
-      focusIndex: -1
-    };
-  },
   mounted() {
     const element = this.$refs.element;
     element.appendChild(this.element);
@@ -88,10 +82,6 @@ export default {
       }
 
       const focusButton = this.$refs.buttons.filter((button, index) => {
-        if (this.buttons[index].emphasis) {
-          this.focusIndex = index;
-        }
-
         return this.buttons[index].emphasis;
       });
 
